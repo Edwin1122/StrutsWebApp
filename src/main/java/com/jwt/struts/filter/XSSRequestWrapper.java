@@ -1,7 +1,9 @@
 package com.jwt.struts.filter;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.owasp.esapi.ESAPI;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -47,17 +49,23 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
         if (value != null) {
             // NOTE: It's highly recommended to use the ESAPI library and uncomment the following line to
             // avoid encoded attacks.
-            // value = ESAPI.encoder().canonicalize(value);
+            value = ESAPI.encoder().canonicalize(value);
  
             // Avoid null characters
             value = value.replaceAll("", "");
  
             // Avoid anything between script tags
             Pattern scriptPattern = Pattern.compile("<script>(.*?)</script>", Pattern.CASE_INSENSITIVE);
-
-
+//            Matcher scriptMatcher = scriptPattern.matcher(value);
+//            StringBuilder builder = new StringBuilder();
+//            while (scriptMatcher.find()) {
+//                System.out.println(scriptMatcher.group(1));
+//                builder.append(scriptMatcher.group(1));
+//            }
+//
+//            value = builder.toString();
             value = scriptPattern.matcher(value).replaceAll("");
- 
+
             // Avoid anything in a src='...' type of expression
             scriptPattern = Pattern.compile("src[\r\n]*=[\r\n]*\\\'(.*?)\\\'", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
             value = scriptPattern.matcher(value).replaceAll("");
@@ -92,13 +100,20 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
             // Avoid onload= expressions
             scriptPattern = Pattern.compile("onload(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
             value = scriptPattern.matcher(value).replaceAll("");
+
+            //Avoid SQL injection content
+            Pattern sqlPattern = Pattern.compile("(‘|or|and|;|-|--|\\+|,|like|//|/|\\*|%|#)", Pattern.CASE_INSENSITIVE);
+            value = sqlPattern.matcher(value).replaceAll("");
+
         }
         return value;
     }
     
     private String escapeXSS(String value) {
         if (value != null) {
-            return StringEscapeUtils.escapeHtml4(value);
+            value = StringEscapeUtils.escapeJavaScript(value);
+            value = StringEscapeUtils.escapeSql(value);
+            return StringEscapeUtils.escapeHtml(value);
         }
 
         return null;

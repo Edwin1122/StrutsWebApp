@@ -7,7 +7,7 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 
 public class XSSFilter implements Filter {
-	 
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     }
