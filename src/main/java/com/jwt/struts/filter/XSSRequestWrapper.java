@@ -1,6 +1,9 @@
 package com.jwt.struts.filter;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document.OutputSettings;
+import org.jsoup.safety.Safelist;
 import org.owasp.esapi.ESAPI;
 
 import java.util.regex.Matcher;
@@ -10,7 +13,20 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
  
 public class XSSRequestWrapper extends HttpServletRequestWrapper {
- 
+
+    private final static Safelist WHITELIST = Safelist.relaxed();
+
+    private final static OutputSettings OUTPUTSETTINGS = new OutputSettings().prettyPrint( false );
+
+    static {
+        WHITELIST.addTags("embed", "object", "param", "span", "div", "img");
+        WHITELIST.addAttributes(":all", "style", "class", "id", "name");
+        WHITELIST.addAttributes("object", "width", "height", "classid", "codebase");
+        WHITELIST.addAttributes("param", "name", "value");
+        WHITELIST.addAttributes("embed", "src", "quality", "width", "height", "allowFullScreen",
+                "allowScriptAccess", "flashvars", "name", "type", "pluginspage");
+    }
+
     public XSSRequestWrapper(HttpServletRequest servletRequest) {
         super(servletRequest);
     }
@@ -102,8 +118,11 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
             value = scriptPattern.matcher(value).replaceAll("");
 
             //Avoid SQL injection content
-            Pattern sqlPattern = Pattern.compile("(‘|or|and|;|-|--|\\+|,|like|//|/|\\*|%|#)", Pattern.CASE_INSENSITIVE);
+            Pattern sqlPattern = Pattern.compile("(‘|or|and|;|-|--|\\+|,|like|//|/|\\*|%|#|@|exec|\\(|\\))", Pattern.CASE_INSENSITIVE);
             value = sqlPattern.matcher(value).replaceAll("");
+
+            //clean out HTML
+            value = Jsoup.clean(value, "", WHITELIST, OUTPUTSETTINGS);
 
         }
         return value;
@@ -112,7 +131,7 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
     private String escapeXSS(String value) {
         if (value != null) {
             value = StringEscapeUtils.escapeJavaScript(value);
-            value = StringEscapeUtils.escapeSql(value);
+//            value = StringEscapeUtils.escapeSql(value);
             return StringEscapeUtils.escapeHtml(value);
         }
 
