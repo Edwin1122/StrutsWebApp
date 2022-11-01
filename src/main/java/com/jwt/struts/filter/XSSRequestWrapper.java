@@ -6,7 +6,6 @@ import org.jsoup.nodes.Document.OutputSettings;
 import org.jsoup.safety.Safelist;
 import org.owasp.esapi.ESAPI;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -128,7 +127,7 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
         return value;
     }
     
-    private String escapeXSS(String value) {
+    public static String escapeXSS(String value) {
         if (value != null) {
             value = StringEscapeUtils.escapeJavaScript(value);
 //            value = StringEscapeUtils.escapeSql(value);

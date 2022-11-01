@@ -1,6 +1,8 @@
 package com.jwt.struts.filter;
 
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.io.IOException;
 
 import javax.servlet.*;

@@ -14,12 +14,11 @@
 <body>
     <html:form action="/login" focus="userName">
     
-Username : <html:text property="userName" />
-
-        <br>
-Password : <html:password property="password" />
-        <br>
-        <html:submit value="login" />
+        Username : <html:text property="userName" />
+                <br>
+        Password : <html:password property="password" />
+                <br>
+                <html:submit value="login" />
     </html:form>
 </body>
 </html>
